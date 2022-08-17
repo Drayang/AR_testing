@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">arTesting</string>
+    <string name="new_object">New Object</string>
+    <string name="place_object">Place Object</string>
+</resources>
