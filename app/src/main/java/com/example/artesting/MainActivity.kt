@@ -2,6 +2,7 @@ package com.example.artesting
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -35,37 +36,54 @@ class MainActivity : AppCompatActivity() {
     )
 
     val models = listOf(
-        Model("models/spiderbot.glb"),
-        Model(
-            "https://storage.googleapis.com/ar-answers-in-search-models/static/Tiger/model.glb",
-            placementMode = PlacementMode.BEST_AVAILABLE.apply {
+//        Model("model/spiderbot.glb"),
+        Model("model/parcelSPXMY0072.glb",
+            placementMode = PlacementMode.INSTANT.apply {
                 keepRotation = true
             },
-            // Display the Tiger with a size of 3 m long
-            scaleUnits = 2.5f
-        ),
-        Model(
-            "https://sceneview.github.io/assets/models/DamagedHelmet.glb",
-            placementMode = PlacementMode.INSTANT,
             scaleUnits = 0.5f
         ),
-        Model(
-            "https://storage.googleapis.com/ar-answers-in-search-models/static/GiantPanda/model.glb",
-            placementMode = PlacementMode.PLANE_HORIZONTAL,
-            // Display the Tiger with a size of 1.5 m height
+        Model("model/parcelSPXMY0060.glb",
+            placementMode = PlacementMode.PLANE_HORIZONTAL.apply {
+                keepRotation = true
+            },
+            scaleUnits = 0.5f),
+        Model("model/parcelSPXMY0001.glb",
+            placementMode = PlacementMode.INSTANT.apply {
+                keepRotation = true
+            },
             scaleUnits = 0.5f
         ),
-        Model(
-            "https://sceneview.github.io/assets/models/Spoons.glb",
-            placementMode = PlacementMode.PLANE_HORIZONTAL_AND_VERTICAL,
-            // Keep original model size
-            scaleUnits = null
-        ),
-        Model(
-            "https://sceneview.github.io/assets/models/Halloween.glb",
-            placementMode = PlacementMode.PLANE_HORIZONTAL,
-            scaleUnits = 2.5f
-        ),
+//        Model(
+//            "https://storage.googleapis.com/ar-answers-in-search-models/static/Tiger/model.glb",
+//            placementMode = PlacementMode.BEST_AVAILABLE.apply {
+//                keepRotation = true
+//            },
+//            // Display the Tiger with a size of 3 m long
+//            scaleUnits = 0.5f
+//        ),
+//        Model(
+//            "https://sceneview.github.io/assets/models/DamagedHelmet.glb",
+//            placementMode = PlacementMode.INSTANT,
+//            scaleUnits = 0.5f
+//        ),
+//        Model(
+//            "https://storage.googleapis.com/ar-answers-in-search-models/static/GiantPanda/model.glb",
+//            placementMode = PlacementMode.PLANE_HORIZONTAL,
+//            // Display the Tiger with a size of 1.5 m height
+//            scaleUnits = 1.5f
+//        ),
+//        Model(
+//            "https://sceneview.github.io/assets/models/Spoons.glb",
+//            placementMode = PlacementMode.PLANE_HORIZONTAL_AND_VERTICAL,
+//            // Keep original model size
+//            scaleUnits = null
+//        ),
+//        Model(
+//            "https://sceneview.github.io/assets/models/Halloween.glb",
+//            placementMode = PlacementMode.PLANE_HORIZONTAL,
+//            scaleUnits = 2.5f
+//        ),
     )
     ////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,8 +101,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-//        binding = ActivityMainBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         setFullScreen(
             findViewById(R.id.rootView),
@@ -94,10 +112,14 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        sceneView = findViewById(R.id.sceneView)
-        loadingView = findViewById(R.id.loadingView)
+//        sceneView = findViewById(R.id.sceneView)
+//        loadingView = findViewById(R.id.loadingView)
 
-        newModelButton = findViewById<ExtendedFloatingActionButton>(R.id.newModelButton).apply {
+        sceneView = binding.sceneView
+        loadingView = binding.loadingView
+
+        // Button to add new model from the modelist
+        newModelButton = binding.newModelButton.apply {
             // Add system bar margins
             val bottomMargin = (layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
             doOnApplyWindowInsets { systemBarsInsets ->
@@ -106,9 +128,23 @@ class MainActivity : AppCompatActivity() {
             }
             setOnClickListener { newModelNode() }
         }
-        placeModelButton = findViewById<ExtendedFloatingActionButton>(R.id.placeModelButton).apply {
+
+        // Button to anchor the model
+        placeModelButton = binding.placeModelButton.apply{
             setOnClickListener { placeModelNode() }
         }
+//        newModelButton = findViewById<ExtendedFloatingActionButton>(R.id.newModelButton).apply {
+//            // Add system bar margins
+//            val bottomMargin = (layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+//            doOnApplyWindowInsets { systemBarsInsets ->
+//                (layoutParams as ViewGroup.MarginLayoutParams).bottomMargin =
+//                    systemBarsInsets.bottom + bottomMargin
+//            }
+//            setOnClickListener { newModelNode() }
+//        }
+//        placeModelButton = findViewById<ExtendedFloatingActionButton>(R.id.placeModelButton).apply {
+//            setOnClickListener { placeModelNode() }
+//        }
 
         newModelNode()
     }
@@ -145,21 +181,30 @@ class MainActivity : AppCompatActivity() {
             it.destroy()
         }
         val model = models[modelIndex]
+        Log.i("My","The fie is ${model.fileLocation}")
         modelIndex = (modelIndex + 1) % models.size
-        modelNode = ArModelNode(model.placementMode).apply {
+        // API doc. https://sceneview.github.io/api/sceneview-android/arsceneview/arsceneview/io.github.sceneview.ar.node/-ar-model-node/-ar-model-node.html
+        modelNode = ArModelNode(
+            placementMode = model.placementMode,
+            hitPosition = Position(0.0f, 0.0f, -2.0f),
+            followHitPosition = true,
+            instantAnchor = false,
+        ).apply {
             loadModelAsync( //try to load the model... This is function of ArModelNOde
                 context = this@MainActivity,
                 lifecycle = lifecycle,
                 glbFileLocation = model.fileLocation,
                 autoAnimate = true,
+//                autoscale = true,
                 scaleToUnits = model.scaleUnits,
                 // Place the model origin at the bottom center
                 centerOrigin = Position(y = -1.0f)
             ) { // after successfully loading the model then....
                 sceneView.planeRenderer.isVisible = true
                 isLoading = false
+                Log.i("My","The fie is ${model.fileLocation}")
             }
-            onPoseChanged = { node, _ ->
+            onPoseChanged = { node, _ -> //ARModelNode 's   onXXXX e.g onError, onLoaded...
                 placeModelButton.isGone = node.isAnchored || !node.isTracking
             }
         }

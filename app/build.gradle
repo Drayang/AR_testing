@@ -33,15 +33,30 @@ android {
         viewBinding true
     }
     // SceneView ARCore and 3D
-//    aaptOptions{
-//        noCompress'filament','ktx'
-//    }
+    aaptOptions{
+        noCompress'filament','ktx'
+    }
 }
 
 dependencies {
 
+    // Filament
+    def filament_version = '1.25.1'
+    api "com.google.android.filament:filament-android:$filament_version"
+    api "com.google.android.filament:gltfio-android:$filament_version"
+    api "com.google.android.filament:filament-utils-android:$filament_version"
+
     // SceneView ARCore and 3D
-    implementation 'io.github.sceneview:arsceneview:0.8.0'
+    def sceneview_veresion = '0.8.0'
+    implementation "io.github.sceneview:arsceneview:$sceneview_veresion"
+    implementation "io.github.sceneview:sceneview:$sceneview_veresion"
+
+    // ARCore
+    def arcore_version = '1.32.0'
+    api "com.google.ar:core:$arcore_version"
+
+    // Material
+    implementation 'com.google.android.material:material:1.5.0'
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.2'
